@@ -58,6 +58,29 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ message, persona }) => {
                   {message.text}
                 </ReactMarkdown>
              </div>
+
+             {/* Grounding Sources (Search Results) */}
+             {message.sources && message.sources.length > 0 && (
+               <div className="mt-3 pt-3 border-t border-white/10">
+                 <p className="text-[10px] uppercase tracking-wider text-brand-muted font-bold mb-2 flex items-center gap-1">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                   Sources
+                 </p>
+                 <div className="flex flex-wrap gap-2">
+                   {message.sources.map((source, idx) => (
+                     <a 
+                       key={idx} 
+                       href={source.uri} 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       className="text-[10px] bg-black/30 hover:bg-black/50 text-blue-300 px-2 py-1 rounded border border-white/5 truncate max-w-[200px] transition-colors"
+                     >
+                       {source.title}
+                     </a>
+                   ))}
+                 </div>
+               </div>
+             )}
           </div>
         </div>
 
