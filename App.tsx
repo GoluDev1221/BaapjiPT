@@ -10,13 +10,16 @@ const App: React.FC = () => {
   const [currentPersonaId, setCurrentPersonaId] = useState<PersonaId>(PersonaId.DRUV);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
-  // Refs for managing chat session and auto-scroll
+  // Refs
   const chatSessionRef = useRef<Chat | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const currentPersona = PERSONAS[currentPersonaId];
 
   // Initialize or reset chat when persona changes
@@ -30,6 +33,7 @@ const App: React.FC = () => {
     };
     
     setMessages([initialGreeting]);
+    setSelectedImage(null);
     chatSessionRef.current = createChatSession(currentPersona.systemInstruction);
     
     // Focus input on persona switch
@@ -41,21 +45,46 @@ const App: React.FC = () => {
   // Scroll to bottom whenever messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
+  }, [messages, isLoading, selectedImage]);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string);
+        // Focus back on text input to add a caption
+        inputRef.current?.focus();
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
     
-    if (!inputText.trim() || isLoading || !chatSessionRef.current) return;
+    // Allow sending if there is text OR an image
+    if ((!inputText.trim() && !selectedImage) || isLoading || !chatSessionRef.current) return;
 
-    const userMessageText = inputText.trim();
-    setInputText(''); // Clear input immediately
+    const userMessageText = inputText.trim() || (selectedImage ? "Analyze this image" : "...");
+    const imageToSend = selectedImage;
+    
+    setInputText(''); 
+    setSelectedImage(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    
     setIsLoading(true);
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: Role.USER,
       text: userMessageText,
+      image: imageToSend || undefined,
       timestamp: Date.now()
     };
 
@@ -77,6 +106,7 @@ const App: React.FC = () => {
       await sendMessageStream(
         chatSessionRef.current,
         userMessageText,
+        imageToSend,
         (chunkText) => {
           // Update the specific bot message in state with the new chunk
           setMessages(prev => prev.map(msg => 
@@ -169,10 +199,42 @@ const App: React.FC = () => {
         {/* Input Area */}
         <div className="p-4 md:p-6 bg-brand-dark/95 backdrop-blur border-t border-white/5">
           <div className="max-w-3xl mx-auto w-full">
+            
+            {/* Image Preview */}
+            {selectedImage && (
+              <div className="mb-3 flex items-start">
+                <div className="relative group">
+                  <img 
+                    src={selectedImage} 
+                    alt="Preview" 
+                    className="h-20 w-20 object-cover rounded-xl border border-white/20"
+                  />
+                  <button 
+                    onClick={handleRemoveImage}
+                    className="absolute -top-2 -right-2 bg-zinc-800 text-white rounded-full p-1 shadow-lg border border-white/10 hover:bg-red-500 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="relative flex items-end gap-2 bg-brand-panel border border-white/10 rounded-2xl p-2 focus-within:border-brand-accent/50 focus-within:ring-1 focus-within:ring-brand-accent/20 transition-all shadow-lg">
               
-              <button className="p-2 text-brand-muted hover:text-white transition-colors rounded-lg hover:bg-white/5" title="Upload Image (Coming Soon)">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageSelect}
+              />
+              
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className={`p-2 transition-colors rounded-lg hover:bg-white/5 ${selectedImage ? 'text-brand-accent' : 'text-brand-muted hover:text-white'}`}
+                title="Upload Image"
+              >
+                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
               </button>
 
               <textarea
@@ -181,7 +243,7 @@ const App: React.FC = () => {
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={`Message ${currentPersona.name}...`}
+                placeholder={selectedImage ? `Describe this to ${currentPersona.name}...` : `Message ${currentPersona.name}...`}
                 className="flex-1 max-h-32 bg-transparent text-white placeholder-zinc-500 focus:outline-none resize-none py-2 px-1 text-sm md:text-base scrollbar-hide"
                 rows={1}
                 style={{ minHeight: '44px' }}
@@ -189,9 +251,9 @@ const App: React.FC = () => {
 
               <button 
                 onClick={() => handleSendMessage()}
-                disabled={isLoading || !inputText.trim()}
+                disabled={isLoading || (!inputText.trim() && !selectedImage)}
                 className={`p-2 rounded-xl transition-all duration-200 flex items-center justify-center ${
-                  inputText.trim() && !isLoading
+                  (inputText.trim() || selectedImage) && !isLoading
                     ? 'bg-brand-accent text-white hover:bg-purple-600 shadow-lg shadow-purple-900/20' 
                     : 'bg-white/5 text-zinc-600 cursor-not-allowed'
                 }`}
