@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Persona, PersonaId } from '../types';
 import { PERSONAS } from '../constants';
 
@@ -10,6 +10,8 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentPersonaId, onSelectPersona, isOpen, onToggle }) => {
+  const [logoError, setLogoError] = useState(false);
+
   return (
     <>
       {/* Mobile Overlay */}
@@ -24,11 +26,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPersonaId, onSelectPers
       >
         <div className="p-6 border-b border-white/5 flex items-center gap-3">
           {/* Logo Container */}
-          <img 
-            src="/logo.png" 
-            alt="BaapjiPT Logo" 
-            className="w-12 h-12 rounded-xl shadow-lg border border-white/10 object-cover"
-          />
+          <div className="w-12 h-12 flex-shrink-0 rounded-xl shadow-lg border border-white/10 flex items-center justify-center bg-gradient-to-br from-brand-accent to-pink-600 overflow-hidden relative">
+            {!logoError ? (
+              <img 
+                src="/logo.png" 
+                alt="BaapjiPT Logo" 
+                className="w-full h-full object-cover"
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              <span className="text-2xl select-none">🤖</span>
+            )}
+          </div>
           
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-accent to-pink-500 truncate">
