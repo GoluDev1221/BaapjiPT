@@ -3,17 +3,18 @@ import { Message, Role, Source } from '../types';
 import { GEMINI_MODEL } from '../constants';
 
 // Safely access process.env.API_KEY to prevent ReferenceError in browser environments
-let apiKey = '';
+// Default to the provided key if env var is missing
+let apiKey = 'AIzaSyCml_0IiQEv85Gc1WbLfsrjxFg_jpym4Lg';
 try {
-  if (typeof process !== 'undefined' && process.env) {
-    apiKey = process.env.API_KEY || '';
+  if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+    apiKey = process.env.API_KEY;
   }
 } catch (e) {
   console.warn("Could not access process.env.API_KEY");
 }
 
-// Initialize with a fallback to prevent immediate crash, though API calls will fail if key is invalid
-const ai = new GoogleGenAI({ apiKey: apiKey || 'MISSING_API_KEY' });
+// Initialize the client
+const ai = new GoogleGenAI({ apiKey: apiKey });
 
 export const createChatSession = (systemInstruction: string, useSearch: boolean = false): Chat => {
   const tools = useSearch ? [{ googleSearch: {} }] : undefined;
