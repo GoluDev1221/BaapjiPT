@@ -30,10 +30,30 @@ export const createChatSession = (systemInstruction: string): Chat => {
 export const sendMessageStream = async (
   chat: Chat, 
   message: string, 
+  imageBase64: string | null,
   onChunk: (text: string) => void
 ): Promise<string> => {
   try {
-    const resultStream = await chat.sendMessageStream({ message });
+    let msgPayload: any = message;
+
+    // If there is an image, we must send a "Parts" array containing both the image and the text.
+    if (imageBase64) {
+      // Extract the actual base64 string (remove data:image/jpeg;base64, prefix)
+      const base64Data = imageBase64.split(',')[1];
+      const mimeType = imageBase64.split(';')[0].split(':')[1];
+
+      msgPayload = [
+        { text: message },
+        { 
+          inlineData: { 
+            mimeType: mimeType, 
+            data: base64Data 
+          } 
+        }
+      ];
+    }
+
+    const resultStream = await chat.sendMessageStream({ message: msgPayload });
     
     let fullText = '';
     
