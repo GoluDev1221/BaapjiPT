@@ -8,6 +8,7 @@ export interface Message {
   role: Role;
   text: string;
   timestamp: number;
+  image?: string; // Base64 data URL for displaying the image in chat
 }
 
 export enum PersonaId {
