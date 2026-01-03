@@ -134,8 +134,8 @@ const App: React.FC = () => {
     } catch (error) {
       console.error("Failed to send message", error);
       const errorMessage = !hasValidApiKey() 
-        ? "**Setup Error:** API Key is missing. Please configure your environment variables." 
-        : "**Error:** Baapji is unreachable. Check your internet connection or API key validity.";
+        ? "**Configuration Missing:** Please add `VITE_API_KEY` (or `NEXT_PUBLIC_API_KEY`) to your environment variables." 
+        : "**Connection Error:** The API key exists but might be invalid or the service is unreachable. \n\n*Tip: If on Vercel, try renaming `API_KEY` to `VITE_API_KEY` in settings.*";
       
       setMessages(prev => prev.map(msg => 
         msg.id === botMessageId 
@@ -198,7 +198,7 @@ const App: React.FC = () => {
         {isApiKeyMissing && (
           <div className="bg-red-500/10 border-b border-red-500/20 p-2 text-center animate-pulse-fast">
             <p className="text-xs md:text-sm text-red-400 font-medium">
-              ⚠️ <strong>Configuration Missing:</strong> Please add <code>API_KEY</code> to your .env file or environment variables.
+              ⚠️ <strong>Configuration Missing:</strong> Env var <code>VITE_API_KEY</code> (or <code>NEXT_PUBLIC_API_KEY</code>) is not found.
             </p>
           </div>
         )}
