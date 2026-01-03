@@ -23,11 +23,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPersonaId, onSelectPers
         className={`fixed md:static inset-y-0 left-0 z-30 w-72 bg-brand-panel border-r border-white/5 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} flex flex-col`}
       >
         <div className="p-6 border-b border-white/5 flex items-center gap-3">
+          {/* Logo Container */}
           <img 
-            src="https://api.dicebear.com/9.x/avataaars/svg?seed=Baapji&backgroundColor=b6e3f4" 
+            src="/logo.png" 
             alt="BaapjiPT Logo" 
-            className="w-12 h-12 rounded-xl shadow-lg border border-white/10"
+            className="w-12 h-12 rounded-xl shadow-lg border border-white/10 object-cover"
           />
+          
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-accent to-pink-500 truncate">
               BaapjiPT
