@@ -84,7 +84,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPersonaId, onSelectPers
         </div>
 
         <div className="p-4 border-t border-white/5 text-center">
-           <p className="text-xs text-brand-muted">Powered by Gemini 3.0</p>
+           <p className="text-xs text-brand-muted">Powered by Ghee Khatam Tech Solutions</p>
         </div>
       </aside>
     </>
