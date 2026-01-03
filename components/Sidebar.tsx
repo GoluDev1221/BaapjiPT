@@ -22,14 +22,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPersonaId, onSelectPers
       <aside 
         className={`fixed md:static inset-y-0 left-0 z-30 w-72 bg-brand-panel border-r border-white/5 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} flex flex-col`}
       >
-        <div className="p-6 border-b border-white/5 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-accent to-pink-500">
+        <div className="p-6 border-b border-white/5 flex items-center gap-3">
+          {/* LOGO: Replace the src below with your actual image URL or local path like '/logo.png' */}
+          <img 
+            src="https://api.dicebear.com/9.x/avataaars/svg?seed=Baapji&backgroundColor=b6e3f4" 
+            alt="BaapjiPT Logo" 
+            className="w-12 h-12 rounded-xl shadow-lg border border-white/10"
+          />
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-accent to-pink-500 truncate">
               BaapjiPT
             </h1>
-            <p className="text-xs text-brand-muted mt-1">Meme-Grade Intelligence</p>
+            <p className="text-xs text-brand-muted truncate">Meme-Grade Intelligence</p>
           </div>
-          <button onClick={onToggle} className="md:hidden text-brand-muted hover:text-white">
+          <button onClick={onToggle} className="md:hidden text-brand-muted hover:text-white flex-shrink-0 ml-auto">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
