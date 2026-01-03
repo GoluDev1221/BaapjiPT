@@ -4,7 +4,7 @@ import { Sidebar } from './components/Sidebar';
 import { ChatBubble } from './components/ChatBubble';
 import { PersonaId, Message, Role, Persona } from './types';
 import { PERSONAS, INITIAL_GREETINGS } from './constants';
-import { createChatSession, sendMessageStream } from './services/geminiService';
+import { createChatSession, sendMessageStream, hasValidApiKey } from './services/geminiService';
 
 const App: React.FC = () => {
   const [currentPersonaId, setCurrentPersonaId] = useState<PersonaId>(PersonaId.DRUV);
@@ -13,6 +13,7 @@ const App: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isApiKeyMissing, setIsApiKeyMissing] = useState(false);
   
   // Refs
   const chatSessionRef = useRef<Chat | null>(null);
@@ -21,6 +22,11 @@ const App: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const currentPersona = PERSONAS[currentPersonaId];
+
+  // Check for API key on mount
+  useEffect(() => {
+    setIsApiKeyMissing(!hasValidApiKey());
+  }, []);
 
   // Initialize or reset chat when persona changes
   useEffect(() => {
@@ -127,9 +133,13 @@ const App: React.FC = () => {
       );
     } catch (error) {
       console.error("Failed to send message", error);
+      const errorMessage = !hasValidApiKey() 
+        ? "**Setup Error:** API Key is missing. Please configure your environment variables." 
+        : "**Error:** Baapji is unreachable. Check your internet connection or API key validity.";
+      
       setMessages(prev => prev.map(msg => 
         msg.id === botMessageId 
-          ? { ...msg, text: "**Error:** Baapji is currently unreachable. Check your connection or API Key." }
+          ? { ...msg, text: errorMessage }
           : msg
       ));
     } finally {
@@ -183,6 +193,15 @@ const App: React.FC = () => {
           
           <div className="w-8 md:w-auto" /> {/* Spacer */}
         </header>
+
+        {/* API Key Warning Banner */}
+        {isApiKeyMissing && (
+          <div className="bg-red-500/10 border-b border-red-500/20 p-2 text-center animate-pulse-fast">
+            <p className="text-xs md:text-sm text-red-400 font-medium">
+              ⚠️ <strong>Configuration Missing:</strong> Please add <code>API_KEY</code> to your .env file or environment variables.
+            </p>
+          </div>
+        )}
 
         {/* Messages List */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-2">
