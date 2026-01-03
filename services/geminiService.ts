@@ -2,6 +2,15 @@ import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 import { Message, Role, Source } from '../types';
 import { GEMINI_MODEL } from '../constants';
 
+// Helper to check if API key is configured
+export const hasValidApiKey = (): boolean => {
+  try {
+    return typeof process !== 'undefined' && !!process.env && !!process.env.API_KEY;
+  } catch (e) {
+    return false;
+  }
+};
+
 // Helper to safely initialize the AI client
 // We allow this to return a client with an empty key if env is missing, 
 // so the UI can load. The actual API call will fail gracefully later if the key is missing.
