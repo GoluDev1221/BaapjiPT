@@ -2,28 +2,47 @@ import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 import { Message, Role, Source } from '../types';
 import { GEMINI_MODEL } from '../constants';
 
-// Helper to check if API key is configured
-export const hasValidApiKey = (): boolean => {
+// Robustly retrieve API Key from various environment configurations
+const getApiKey = (): string => {
+  let key = '';
+  
+  // 1. Check process.env (Node.js, Next.js, Create React App)
   try {
-    return typeof process !== 'undefined' && !!process.env && !!process.env.API_KEY;
-  } catch (e) {
-    return false;
-  }
-};
-
-// Helper to safely initialize the AI client
-// We allow this to return a client with an empty key if env is missing, 
-// so the UI can load. The actual API call will fail gracefully later if the key is missing.
-const getAiClient = () => {
-  let apiKey = '';
-  try {
-    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-      apiKey = process.env.API_KEY;
+    if (typeof process !== 'undefined' && process.env) {
+      key = process.env.API_KEY || 
+            process.env.NEXT_PUBLIC_API_KEY || 
+            process.env.REACT_APP_API_KEY || 
+            process.env.VITE_API_KEY || 
+            '';
     }
   } catch (e) {
-    console.warn("Could not access process.env");
+    // Ignore process access errors
   }
-  return new GoogleGenAI({ apiKey });
+
+  // 2. Check import.meta.env (Vite)
+  if (!key) {
+    try {
+      // @ts-ignore - Handles environments where import.meta is not standard TS
+      if (import.meta && import.meta.env) {
+        // @ts-ignore
+        key = import.meta.env.VITE_API_KEY || import.meta.env.API_KEY || '';
+      }
+    } catch (e) {
+      // Ignore import.meta access errors
+    }
+  }
+
+  return key;
+};
+
+// Helper to check if API key is configured
+export const hasValidApiKey = (): boolean => {
+  return !!getApiKey();
+};
+
+// Initialize client with whatever key we found (or empty string)
+const getAiClient = () => {
+  return new GoogleGenAI({ apiKey: getApiKey() });
 };
 
 export const createChatSession = (systemInstruction: string, useSearch: boolean = false): Chat => {
