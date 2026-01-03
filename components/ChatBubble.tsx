@@ -37,15 +37,16 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ message, persona }) => {
               ? 'bg-brand-accent text-white rounded-tr-sm' 
               : 'bg-brand-panel border border-white/5 text-gray-200 rounded-tl-sm'
           }`}>
-             <ReactMarkdown 
-                className="prose prose-invert prose-p:leading-relaxed prose-pre:bg-black/30 prose-pre:p-2 prose-pre:rounded"
-                components={{
-                    p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
-                    a: ({node, ...props}) => <a className="text-brand-accent hover:underline" target="_blank" rel="noreferrer" {...props} />
-                }}
-             >
-              {message.text}
-            </ReactMarkdown>
+             <div className="prose prose-invert prose-p:leading-relaxed prose-pre:bg-black/30 prose-pre:p-2 prose-pre:rounded">
+                <ReactMarkdown 
+                    components={{
+                        p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                        a: ({node, ...props}) => <a className="text-brand-accent hover:underline" target="_blank" rel="noreferrer" {...props} />
+                    }}
+                >
+                  {message.text}
+                </ReactMarkdown>
+             </div>
           </div>
         </div>
 
