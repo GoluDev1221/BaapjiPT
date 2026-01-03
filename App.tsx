@@ -16,6 +16,7 @@ const App: React.FC = () => {
   // Refs for managing chat session and auto-scroll
   const chatSessionRef = useRef<Chat | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const currentPersona = PERSONAS[currentPersonaId];
 
   // Initialize or reset chat when persona changes
@@ -30,12 +31,17 @@ const App: React.FC = () => {
     
     setMessages([initialGreeting]);
     chatSessionRef.current = createChatSession(currentPersona.systemInstruction);
+    
+    // Focus input on persona switch
+    if (!isSidebarOpen) {
+       inputRef.current?.focus();
+    }
   }, [currentPersonaId, currentPersona.systemInstruction]);
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -89,6 +95,8 @@ const App: React.FC = () => {
       ));
     } finally {
       setIsLoading(false);
+      // Re-focus input after sending
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
 
@@ -145,9 +153,13 @@ const App: React.FC = () => {
                 />
               ))}
               {isLoading && (
-                 <div className="flex items-center gap-2 text-brand-muted text-sm ml-12 animate-pulse">
-                    <span>{currentPersona.avatarEmoji}</span>
-                    <span>Typing...</span>
+                 <div className="flex items-center gap-3 ml-14 mt-2">
+                    <span className="text-xl animate-bounce" style={{ animationDelay: '0ms' }}>{currentPersona.avatarEmoji}</span>
+                    <div className="flex space-x-1">
+                      <div className={`w-2 h-2 rounded-full ${currentPersona.color.replace('text-', 'bg-')} animate-bounce`} style={{ animationDelay: '0ms' }}></div>
+                      <div className={`w-2 h-2 rounded-full ${currentPersona.color.replace('text-', 'bg-')} animate-bounce`} style={{ animationDelay: '150ms' }}></div>
+                      <div className={`w-2 h-2 rounded-full ${currentPersona.color.replace('text-', 'bg-')} animate-bounce`} style={{ animationDelay: '300ms' }}></div>
+                    </div>
                  </div>
               )}
               <div ref={messagesEndRef} />
@@ -164,6 +176,8 @@ const App: React.FC = () => {
               </button>
 
               <textarea
+                ref={inputRef}
+                autoFocus
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
