@@ -1,5 +1,5 @@
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
-import { Message, Role } from '../types';
+import { Message, Role, Source } from '../types';
 import { GEMINI_MODEL } from '../constants';
 
 // Safely access process.env.API_KEY to prevent ReferenceError in browser environments
@@ -15,14 +15,17 @@ try {
 // Initialize with a fallback to prevent immediate crash, though API calls will fail if key is invalid
 const ai = new GoogleGenAI({ apiKey: apiKey || 'MISSING_API_KEY' });
 
-export const createChatSession = (systemInstruction: string): Chat => {
+export const createChatSession = (systemInstruction: string, useSearch: boolean = false): Chat => {
+  const tools = useSearch ? [{ googleSearch: {} }] : undefined;
+  
   return ai.chats.create({
     model: GEMINI_MODEL,
     config: {
       systemInstruction: systemInstruction,
-      temperature: 0.9, // Higher creativity for personas
+      temperature: 0.9,
       topK: 40,
       topP: 0.95,
+      tools: tools,
     },
   });
 };
@@ -31,14 +34,13 @@ export const sendMessageStream = async (
   chat: Chat, 
   message: string, 
   imageBase64: string | null,
-  onChunk: (text: string) => void
+  onUpdate: (text: string, sources?: Source[]) => void
 ): Promise<string> => {
   try {
     let msgPayload: any = message;
 
     // If there is an image, we must send a "Parts" array containing both the image and the text.
     if (imageBase64) {
-      // Extract the actual base64 string (remove data:image/jpeg;base64, prefix)
       const base64Data = imageBase64.split(',')[1];
       const mimeType = imageBase64.split(';')[0].split(':')[1];
 
@@ -56,13 +58,30 @@ export const sendMessageStream = async (
     const resultStream = await chat.sendMessageStream({ message: msgPayload });
     
     let fullText = '';
+    let collectedSources: Source[] = [];
     
     for await (const chunk of resultStream) {
        const c = chunk as GenerateContentResponse;
        const chunkText = c.text;
+       
+       // Extract Grounding Metadata (Sources)
+       if (c.candidates?.[0]?.groundingMetadata?.groundingChunks) {
+         const chunks = c.candidates[0].groundingMetadata.groundingChunks;
+         chunks.forEach((g: any) => {
+           if (g.web) {
+             collectedSources.push({
+               title: g.web.title,
+               uri: g.web.uri
+             });
+           }
+         });
+       }
+
        if (chunkText) {
          fullText += chunkText;
-         onChunk(chunkText);
+         // Pass unique sources to the callback
+         const uniqueSources = Array.from(new Map(collectedSources.map(s => [s.uri, s])).values());
+         onUpdate(chunkText, uniqueSources.length > 0 ? uniqueSources : undefined);
        }
     }
     
