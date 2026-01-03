@@ -32,6 +32,17 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ message, persona }) => {
              </span>
           </div>
           
+          {/* Image Attachment */}
+          {message.image && (
+            <div className={`mb-2 rounded-xl overflow-hidden border border-white/10 shadow-lg ${isUser ? 'ml-auto' : 'mr-auto'}`}>
+              <img 
+                src={message.image} 
+                alt="Uploaded meme" 
+                className="max-w-full h-auto max-h-64 object-cover block"
+              />
+            </div>
+          )}
+
           <div className={`px-4 py-3 rounded-2xl text-sm md:text-base leading-relaxed shadow-sm overflow-hidden ${
             isUser 
               ? 'bg-brand-accent text-white rounded-tr-sm' 
