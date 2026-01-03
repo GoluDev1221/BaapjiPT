@@ -2,19 +2,8 @@ import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 import { Message, Role, Source } from '../types';
 import { GEMINI_MODEL } from '../constants';
 
-// Safely access process.env.API_KEY to prevent ReferenceError in browser environments
-// Default to the provided key if env var is missing
-let apiKey = 'AIzaSyCml_0IiQEv85Gc1WbLfsrjxFg_jpym4Lg';
-try {
-  if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-    apiKey = process.env.API_KEY;
-  }
-} catch (e) {
-  console.warn("Could not access process.env.API_KEY");
-}
-
-// Initialize the client
-const ai = new GoogleGenAI({ apiKey: apiKey });
+// Initialize the client strictly using the environment variable
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const createChatSession = (systemInstruction: string, useSearch: boolean = false): Chat => {
   const tools = useSearch ? [{ googleSearch: {} }] : undefined;
