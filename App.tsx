@@ -34,13 +34,18 @@ const App: React.FC = () => {
     
     setMessages([initialGreeting]);
     setSelectedImage(null);
-    chatSessionRef.current = createChatSession(currentPersona.systemInstruction);
+    
+    // Pass the useSearch flag to the service
+    chatSessionRef.current = createChatSession(
+      currentPersona.systemInstruction, 
+      currentPersona.useSearch
+    );
     
     // Focus input on persona switch
     if (!isSidebarOpen) {
        inputRef.current?.focus();
     }
-  }, [currentPersonaId, currentPersona.systemInstruction]);
+  }, [currentPersonaId, currentPersona.systemInstruction, currentPersona.useSearch]);
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -107,11 +112,15 @@ const App: React.FC = () => {
         chatSessionRef.current,
         userMessageText,
         imageToSend,
-        (chunkText) => {
-          // Update the specific bot message in state with the new chunk
+        (chunkText, sources) => {
+          // Update the specific bot message in state with the new chunk AND sources
           setMessages(prev => prev.map(msg => 
             msg.id === botMessageId 
-              ? { ...msg, text: msg.text + chunkText }
+              ? { 
+                  ...msg, 
+                  text: msg.text + chunkText,
+                  sources: sources || msg.sources // Preserve existing sources if current chunk has none
+                }
               : msg
           ));
         }
@@ -167,6 +176,9 @@ const App: React.FC = () => {
                   {currentPersona.tagline}
                 </span>
              </div>
+             {currentPersona.useSearch && (
+               <span className="hidden md:block text-[10px] text-brand-success mt-0.5">● Internet Connected</span>
+             )}
           </div>
           
           <div className="w-8 md:w-auto" /> {/* Spacer */}
