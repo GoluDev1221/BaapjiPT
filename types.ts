@@ -19,7 +19,6 @@ export interface Message {
 
 export enum PersonaId {
   BAMA = 'bama',
-  GRDA = 'grda',
   DRUV = 'druv'
 }
 
